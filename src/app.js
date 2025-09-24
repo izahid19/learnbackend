@@ -11,11 +11,22 @@ const app = express();
 const PORT = 5000;
 
 // ✅ CORS setup
+const allowedOrigins = [
+  "http://localhost:5173", // local dev
+  "https://dev-tinderrr.vercel.app" // Vercel prod
+];
+
 const corsOptions = {
-  origin: "http://localhost:5173",
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true, 
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
+  allowedHeaders: ["Content-Type","Authorization"],
+  credentials: true,
 };
 
 app.use(cors(corsOptions));
