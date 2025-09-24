@@ -6,7 +6,7 @@ const userAuth = async (req, res, next) => {
     const cookie = req.cookies;
     const {token} = cookie;
     if(!token){
-      throw new Error("Unauthorized");
+      return res.status(401).send("please login first");
     }
     const decoded = jwt.verify(token, "secretKey");
     const user = await User.findById(decoded.userId);
@@ -14,7 +14,7 @@ const userAuth = async (req, res, next) => {
     next();
   }
   catch(err){
-    res.status(400).send("Error: " + err);
+    res.status(400).send("Error: " + err.message);
   }
 }
 
