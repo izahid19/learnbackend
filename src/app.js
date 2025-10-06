@@ -11,26 +11,29 @@ const cors = require("cors");
 const app = express();
 const PORT = 7777;
 
-// ✅ CORS setup
 const allowedOrigins = [
-  "http://localhost:5173", // local dev
-  "https://dev-tinderrr.vercel.app" // Vercel prod
+  "http://localhost:5173",           // Local dev
+  "https://dev-tinderrr.vercel.app", // Vercel frontend
 ];
 
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.some(o => origin.startsWith(o))) {
       callback(null, true);
     } else {
+      console.error("❌ Blocked by CORS:", origin);
       callback(new Error("Not allowed by CORS"));
     }
   },
-  methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
-  allowedHeaders: ["Content-Type","Authorization"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 };
 
 app.use(cors(corsOptions));
+
+// ✅ Handle preflight requests globally
+app.options(/.*/, cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
