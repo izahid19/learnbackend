@@ -14,18 +14,40 @@ profileRouter.get("/profile/view", userAuth, async (req, res) => {
 
 profileRouter.patch("/profile/update", userAuth, async (req, res) => {
   try {
-    if (!validateEditProfileData(req)) {
-      throw new Error("Invalid data");
-    }
+    // Validate the data (should throw error if invalid)
+    validateEditProfileData(req);
+    
     const loggedInUser = req.user;
-
-    Object.keys(req.body).forEach((key) => (loggedInUser[key] = req.body[key]));
-
+    
+    // Whitelist allowed fields based on your schema
+    const ALLOWED_UPDATES = [
+      'firstName', 
+      'lastName', 
+      'age', 
+      'gender', 
+      'profilePicture', 
+      'hobbies', 
+      'desc'
+    ];
+    
+    const updates = Object.keys(req.body);
+    const isValidOperation = updates.every(update => ALLOWED_UPDATES.includes(update));
+    
+    if (!isValidOperation) {
+      return res.status(400).json({ error: "Invalid updates - some fields are not allowed" });
+    }
+    
+    // Apply updates
+    updates.forEach(key => loggedInUser[key] = req.body[key]);
+    
     await loggedInUser.save();
 
-    res.json({ message: "Profile updated sucessfully", data: loggedInUser });
+    res.json({ 
+      message: "Profile updated successfully", 
+      data: loggedInUser 
+    });
   } catch (err) {
-    res.status(400).send("Error: " + err);
+    res.status(400).json({ error: err.message || "Failed to update profile" });
   }
 });
 
