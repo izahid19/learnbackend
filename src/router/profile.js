@@ -18,6 +18,8 @@ profileRouter.patch("/profile/update", userAuth, async (req, res) => {
     validateEditProfileData(req);
     
     const loggedInUser = req.user;
+
+    console.log("what is logged in user", loggedInUser);
     
     // Whitelist allowed fields based on your schema
     const ALLOWED_UPDATES = [
