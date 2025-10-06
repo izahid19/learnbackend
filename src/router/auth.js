@@ -31,7 +31,12 @@ authRouter.post("/login", async (req, res) => {
         if (!isPasswordCorrect) {
             throw new Error("Invalid password");
         } else {
-            res.cookie("token", token)
+            res.cookie("token", token, { 
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+                expires: new Date(Date.now() + 24 * 60 * 60 * 1000)
+             });
             res.json({ message: "Login successful", data: user });
         }
     }
