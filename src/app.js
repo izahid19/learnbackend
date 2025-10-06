@@ -43,6 +43,10 @@ app.use("/", profileRouter);
 app.use("/", requestRouter);
 app.use("/", userRouter);
 
+app.patch("/api/test", (req, res) => {
+  res.json({ success: true, data: req.body, message: "CORS works ✅" });
+});
+
 // ✅ DB connection + server start
 connectDB()
   .then(() => {
