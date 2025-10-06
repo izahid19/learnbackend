@@ -11,27 +11,31 @@ const cors = require("cors");
 const app = express();
 const PORT = process.env.PORT || 7777;
 
-// ✅ Allowed frontend URLs (update if needed)
+// ✅ Allowed frontend URLs
 const allowedOrigins = [
-  "http://localhost:5173",            // local dev
-  "https://dev-tinderrr.vercel.app"   // production frontend on Vercel
+  "http://localhost:5173",
+  "https://dev-tinderrr.vercel.app",
 ];
 
-// ✅ Simplified and reliable CORS setup
+// ✅ Proper, production-safe CORS setup
 const corsOptions = {
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    // allow REST tools / direct requests
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error("CORS not allowed for this origin"));
+  },
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true, // allow cookies / auth headers
+  credentials: true,
 };
 
-// ✅ Enable CORS for all routes
+// 🧠 Apply CORS middleware BEFORE routes
 app.use(cors(corsOptions));
 
-// ✅ Explicitly handle preflight OPTIONS requests
+// ✅ Explicitly handle preflight requests
 app.options(/.*/, cors(corsOptions));
 
-// ✅ Body parser & cookies
 app.use(express.json());
 app.use(cookieParser());
 
@@ -41,12 +45,12 @@ app.use("/", profileRouter);
 app.use("/", requestRouter);
 app.use("/", userRouter);
 
-// ✅ Basic health check route (optional but helpful)
+// ✅ Health check route
 app.get("/", (req, res) => {
-  res.send("✅ Backend is running fine!");
+  res.status(200).send("✅ DevTinder backend is up and running!");
 });
 
-// ✅ Connect to DB & start server
+// ✅ Connect to DB and start server
 connectDB()
   .then(() => {
     console.log("✅ Database connected successfully");
