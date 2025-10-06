@@ -2,11 +2,12 @@ require("dotenv").config();
 const express = require("express");
 const connectDB = require("./config/database.js");
 const cookieParser = require("cookie-parser");
+const cors = require("cors");
+
 const { authRouter } = require("./router/auth.js");
 const { profileRouter } = require("./router/profile.js");
 const { requestRouter } = require("./router/request.js");
 const { userRouter } = require("./router/user.js");
-const cors = require("cors");
 
 const app = express();
 const PORT = process.env.PORT || 7777;
@@ -31,30 +32,29 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-// ✅ optional fallback (regex instead of "*")
-app.options(/.*/, cors(corsOptions));
-
+app.options(/.*/, cors(corsOptions)); // ✅ regex, not "*"
 app.use(express.json());
 app.use(cookieParser());
 
-// Test route
-app.get("/api/test", (req, res) => {
-  res.json({ message: "CORS test successful 🚀" });
+// 🚀 test route
+app.get("/", (req, res) => {
+  res.json({ message: "✅ Server is alive!" });
 });
 
-// Routes
+// routers
 app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", requestRouter);
 app.use("/", userRouter);
 
+// DB connect + start
 connectDB()
   .then(() => {
     console.log("✅ Database connected");
     app.listen(PORT, () => {
-      console.log(`🚀 Server is running on PORT: ${PORT}`);
+      console.log(`🚀 Server running on port ${PORT}`);
     });
   })
   .catch((err) => {
-    console.log("❌ Something went wrong while connecting to DB:", err);
+    console.error("❌ DB connection error:", err);
   });
