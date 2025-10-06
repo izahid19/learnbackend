@@ -11,55 +11,50 @@ const cors = require("cors");
 const app = express();
 const PORT = process.env.PORT || 7777;
 
-// ✅ Allow both localhost and Vercel
 const allowedOrigins = [
   "http://localhost:5173",
   "https://dev-tinderrr.vercel.app",
 ];
 
-// ✅ Proper CORS setup
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.log("❌ CORS blocked:", origin);
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.error("❌ Blocked by CORS:", origin);
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
 
-// ✅ Preflight handler (must come before routes)
-app.options(/.*/, cors());
+app.use(cors(corsOptions));
+// ✅ optional fallback (regex instead of "*")
+app.options(/.*/, cors(corsOptions));
 
-// ✅ Middlewares
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ Test endpoint (for debugging)
+// Test route
 app.get("/api/test", (req, res) => {
   res.json({ message: "CORS test successful 🚀" });
 });
 
-// ✅ Routes
+// Routes
 app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", requestRouter);
 app.use("/", userRouter);
 
-// ✅ Connect DB and Start Server
 connectDB()
   .then(() => {
     console.log("✅ Database connected");
     app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`🚀 Server is running on PORT: ${PORT}`);
     });
   })
   .catch((err) => {
-    console.error("❌ DB Connection failed:", err);
+    console.log("❌ Something went wrong while connecting to DB:", err);
   });
