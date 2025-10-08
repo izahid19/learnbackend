@@ -12,44 +12,57 @@ profileRouter.get("/profile/view", userAuth, async (req, res) => {
   }
 });
 
-profileRouter.patch("/profile/update", userAuth, async (req, res) => {
+profileRouter.put("/profile/update", userAuth, async (req, res) => {
   try {
-    // Validate the data (should throw error if invalid)
+    // Validate incoming data
     validateEditProfileData(req);
-    
+
     const loggedInUser = req.user;
 
-    console.log("what is logged in user", loggedInUser);
-    
-    // Whitelist allowed fields based on your schema
+    // Define which fields are allowed
     const ALLOWED_UPDATES = [
-      'firstName', 
-      'lastName', 
-      'age', 
-      'gender', 
-      'profilePicture', 
-      'hobbies', 
-      'desc'
+      "firstName",
+      "lastName",
+      "age",
+      "gender",
+      "profilePicture",
+      "hobbies",
+      "desc",
     ];
-    
-    const updates = Object.keys(req.body);
-    const isValidOperation = updates.every(update => ALLOWED_UPDATES.includes(update));
-    
-    if (!isValidOperation) {
-      return res.status(400).json({ error: "Invalid updates - some fields are not allowed" });
+
+    // If using PUT — expect full data, not partial
+    const payload = req.body;
+
+    // Check for invalid keys
+    const invalidKeys = Object.keys(payload).filter(
+      (key) => !ALLOWED_UPDATES.includes(key)
+    );
+    if (invalidKeys.length > 0) {
+      return res.status(400).json({
+        error: `Invalid fields: ${invalidKeys.join(", ")}`,
+      });
     }
-    
-    // Apply updates
-    updates.forEach(key => loggedInUser[key] = req.body[key]);
-    
+
+    // Overwrite existing allowed fields
+    ALLOWED_UPDATES.forEach((field) => {
+      if (payload[field] !== undefined) {
+        loggedInUser[field] = payload[field];
+      } else {
+        // optional: reset missing fields to null for full replacement semantics
+        loggedInUser[field] = null;
+      }
+    });
+
     await loggedInUser.save();
 
-    res.json({ 
-      message: "Profile updated successfully", 
-      data: loggedInUser 
+    res.json({
+      message: "Profile updated successfully",
+      data: loggedInUser,
     });
   } catch (err) {
-    res.status(400).json({ error: err.message || "Failed to update profile" });
+    res.status(400).json({
+      error: err.message || "Failed to update profile",
+    });
   }
 });
 
