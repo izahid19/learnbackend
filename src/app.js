@@ -9,7 +9,7 @@ const { userRouter } = require("./router/user.js");
 const cors = require("cors");
 
 const app = express();
-const PORT = 7777;
+const PORT = 5000;
 
 // // ✅ CORS setup
 // const allowedOrigins = [
