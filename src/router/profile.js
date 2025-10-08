@@ -19,7 +19,7 @@ profileRouter.put("/profile/update", userAuth, async (req, res) => {
 
     const loggedInUser = req.user;
 
-    // Define which fields are allowed
+    // Define which fields are allowed for update
     const ALLOWED_UPDATES = [
       "firstName",
       "lastName",
@@ -30,7 +30,6 @@ profileRouter.put("/profile/update", userAuth, async (req, res) => {
       "desc",
     ];
 
-    // If using PUT — expect full data, not partial
     const payload = req.body;
 
     // Check for invalid keys
@@ -43,21 +42,34 @@ profileRouter.put("/profile/update", userAuth, async (req, res) => {
       });
     }
 
-    // Overwrite existing allowed fields
+    // Update allowed fields
     ALLOWED_UPDATES.forEach((field) => {
       if (payload[field] !== undefined) {
         loggedInUser[field] = payload[field];
-      } else {
-        // optional: reset missing fields to null for full replacement semantics
-        loggedInUser[field] = null;
       }
+      // Remove the else block to avoid resetting fields to null
+      // This maintains existing values for fields not provided in payload
     });
 
     await loggedInUser.save();
 
+    // Create sanitized response object
+    const sanitizedUser = {
+      firstName: loggedInUser.firstName,
+      lastName: loggedInUser.lastName,
+      age: loggedInUser.age,
+      gender: loggedInUser.gender,
+      profilePicture: loggedInUser.profilePicture,
+      hobbies: loggedInUser.hobbies,
+      desc: loggedInUser.desc,
+      emailId: loggedInUser.emailId, // if you want to include email
+      // Only include _id if absolutely necessary for the client
+      // _id: loggedInUser._id
+    };
+
     res.json({
       message: "Profile updated successfully",
-      data: loggedInUser,
+      data: sanitizedUser,
     });
   } catch (err) {
     res.status(400).json({
